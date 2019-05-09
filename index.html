@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+        <style>
+        #content {
+            width: 100vw;
+            height: calc(100vh - 2em);
+        }
+        </style>
+        <script src="./node_modules/jszip/dist/jszip.js"></script>
+        <script src="./node_modules/file-saver/dist/FileSaver.js"></script>
+    </head>
+<body>
+    <div id="content"> </div>
+<script type = "module">
+      import { enterSketchMode } from "./sketch-mode";
+
+      enterSketchMode(document.getElementById('content'), design => {
+      });
+</script>
+    </body>
+</html>
