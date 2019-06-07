@@ -20,12 +20,14 @@ import "@vaadin/vaadin-split-layout/theme/lumo/vaadin-split-layout.js";
 import "@vaadin/vaadin-tabs/theme/lumo/vaadin-tabs.js";
 import "@vaadin/vaadin-tabs/theme/lumo/vaadin-tab.js";
 import { exportToFlow } from "./flow";
-
+import { exportToVaadin8 } from "./vaadin8";
+import { modelToP3 } from "./polymer3";
 let $ = document.querySelector.bind(document);
 
 const ipsumLorem = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum".split(
   " "
 );
+
 
 const childOf = (rectA, rectB) => {
   return (
@@ -587,7 +589,7 @@ const createAndAppendChildElementsToDOM = (parent, rects) => {
 };
 
 export const enterSketchMode = (targetEl, designCallback) => {
-  const rects = [];
+  let rects = [];
   let draggedEl;
   let draggedRect = {};
   let originX, originY;
@@ -613,17 +615,26 @@ export const enterSketchMode = (targetEl, designCallback) => {
   <div id="sketch-canvas"></div>`;
 
   const canvas = $("#sketch-canvas");
-  canvas.onkeypress = event => {
+
+  const deleteRect = event => {
     if (event.key === "Delete") {
       if (focusedElement) {
-        rects.remove(focusedElement.rect);
+        let newRects = [];
+        rects.forEach(rect => {
+          if (rect != focusedElement.rect) {
+            newRects.push(rect);
+          }
+        });
+        rects = newRects;
         canvas.removeChild(focusedElement);
+        hideCurrentGuess();
       }
     }
   };
 
   canvas.onmousedown = event => {
     draggedEl = document.createElement("div");
+    draggedEl.onkeyup = deleteRect;
     draggedRect = {};
     draggedEl.rect = draggedRect;
     draggedEl.contentEditable = true;
@@ -686,5 +697,26 @@ export const enterSketchMode = (targetEl, designCallback) => {
     };
     targetEl.insertBefore(button, targetEl.childNodes[0]);
 
+    const v8button = document.createElement("button");
+    v8button.textContent = "Export to Vaadin 8";
+    v8button.onclick = () => {
+      deleteRectChildren(rects);
+      roots = createTreeFromRects(rects);
+      const design = createAndAppendChildElements(roots);
+      exportToVaadin8({ designs: { "my-design": { tree: design, css: "" } } });
+    };
+    targetEl.insertBefore(v8button, targetEl.childNodes[0]);
+
+    /*
+    const p3button = document.createElement("button");
+    p3button.textContent = "Export to Polymer 3";
+    p3button.onclick = () => {
+      deleteRectChildren(rects);
+      roots = createTreeFromRects(rects);
+      const design = createAndAppendChildElements(roots);
+      console.log(modelToP3("my-sketch", design));
+    };
+    targetEl.insertBefore(p3button, targetEl.childNodes[0]);
+    */
   };
 };
